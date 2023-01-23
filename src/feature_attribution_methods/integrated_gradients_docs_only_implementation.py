@@ -109,6 +109,37 @@ def to_tensor(to_tensor_input):
     return torch.tensor(input_ids, device=device)
 
 
+def selector_part(expred_out, selector_part_complete_input_tensor, tensor_q, tensor_d):
+    """
+    Add the wildcard to the tensor with the docs where the selector part of ExPred wants them to be placed.
+
+    Args:
+        expred_out: The output from ExPred.
+        selector_part_complete_input_tensor: [CLS] + queries in tensor form + [SEP] + docs in tensor form + [SEP]
+        tensor_q: Queries in tensor form
+        tensor_d: Docs in tensor form
+
+    Returns:
+        The result from the explanation generation from ExPred (only docs) and the classification
+    """
+    # The selector results:
+    selector_part_explanation = expred_out.get('mtl_preds').get('exp_preds').data[0].detach().numpy()
+    selector_part_pred = [round(i) for i in selector_part_explanation]
+
+    selector_part_selected_tensor_docs = []
+    selector_part_complete_input = selector_part_complete_input_tensor.detach().numpy()
+    for index in range(len(tensor_q) + 2, len(tensor_q) + len(tensor_d) + 2):
+        if index < 511 and selector_part_pred[index] == 1:  # 511 (+ 1 seperator token) is the max for ExPred
+            selector_part_selected_tensor_docs.append(selector_part_complete_input[index])
+        if index < 511 and selector_part_pred[index] == 0:  # 511 (+ 1 seperator token) is the max for ExPred
+            selector_part_selected_tensor_docs.append(1012)  # '.', the wildcard fom ExPred
+    selector_part_selected_tensor_docs = torch.tensor(selector_part_selected_tensor_docs)
+
+    selector_part_classification = expred_out.get('cls_preds').get('cls_pred').detach().numpy()
+
+    return selector_part_selected_tensor_docs, selector_part_classification
+
+
 def wrapper(wrapper_tensor_docs, wrapper_queries=None):
     """
     A wrapper for the feature attribution method.
@@ -235,18 +266,10 @@ if __name__ == '__main__':
 
         # Integrated Gradients
         # First the selector part of the model
-        explanation = expred_output.get('mtl_preds').get('exp_preds').data[0].detach().numpy()
-        pred = [round(i) for i in explanation]
-        selected_tensor_docs = []
-        complete_input = complete_input_tensor.detach().numpy()
-        for index in range(len(tensor_queries) + 2, len(tensor_queries) + len(tensor_docs) + 2):
-            if index < 511 and pred[index] == 1:  # 511 (+ 1 seperator token) is the max for ExPred
-                selected_tensor_docs.append(complete_input[index])
-            if index < 511 and pred[index] == 0:  # 511 (+ 1 seperator token) is the max for ExPred
-                selected_tensor_docs.append(1012)  # '.', the wildcard fom ExPred
-        selected_tensor_docs = torch.tensor(selected_tensor_docs)
+        selected_tensor_docs, classification = selector_part(expred_output, complete_input_tensor,
+                                                             tensor_queries, tensor_docs)
+
         # Second part of the model, predictor stage with IG
-        classification = expred_output.get('cls_preds').get('cls_pred').detach().numpy()
         attribution = ig(selected_tensor_docs, queries, int(numpy.argmax(classification)), iterations)
         attribution = attribution.data[0].sum(dim=1).squeeze(0)
         attribution = attribution.detach().numpy() / numpy.linalg.norm(attribution.detach().numpy())  # Normalize
