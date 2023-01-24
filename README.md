@@ -66,4 +66,4 @@ if someone wants to use a different input, adaptations are needed in the feature
 These adaptations would take quite some time because the `wrapper` methods need to be changed. 
 These methods were implemented to make sure 
 <a href="https://captum.ai" target="_blank">Captum</a> and the chosen model worked well with each other.
-See the <a href="https://captum.ai/tutorials/" target="_blank">tutorial from Captum</a> for examples.
+See the <a href="https://captum.ai/tutorials/" target="_blank">tutorials from Captum</a> for examples.
