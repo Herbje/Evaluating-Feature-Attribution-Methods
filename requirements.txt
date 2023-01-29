@@ -1,5 +1,5 @@
 captum==0.5.0
-matplotlib~=3.0.2
+matplotlib~=3.6.2
 numpy==1.23.5
 scipy~=1.9.3
 setuptools~=65.6.0
