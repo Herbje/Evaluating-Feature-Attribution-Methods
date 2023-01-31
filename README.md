@@ -1,7 +1,10 @@
 # Evaluating Feature Attribution Methods
-This GitHub contains the code from a 
-<a href="https://www.studiegids.tudelft.nl/a101_displayCourse.do?course_id=61505" target="_blank">Bachelor thesis project</a>
-for the TU Delft on evaluating three feature attribution methods in the context of fact-checking.
+This GitHub contains the code from a project where we evaluated three feature attribution methods in the context of fact-checking. 
+This project is part of the 
+<a href="https://github.com/TU-Delft-CSE/Research-Project" target="_blank">Research Project 2023</a>
+ of the 
+<a href="https://github.com/TU-Delft-CSE" target="_blank">TU Delft</a> 
+(see the <a href="https://www.studiegids.tudelft.nl/a101_displayCourse.do?course_id=61505" target="_blank">study guide</a>).
 In the `src` folder, the code for running the feature attribution methods and the code for evaluating these methods can be found.
 The `data` folder contains the results for 100 instances of the `test` and `train` set from the total dataset, 
 and in the `colorize` folder, there are .html files with heatmaps on these instances.
